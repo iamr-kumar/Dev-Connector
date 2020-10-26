@@ -1,0 +1,7 @@
+{
+    "mongoURI": "mongodb://zacker:zacker2910@cluster0-shard-00-00.k31l1.azure.mongodb.net:27017,cluster0-shard-00-01.k31l1.azure.mongodb.net:27017,cluster0-shard-00-02.k31l1.azure.mongodb.net:27017/DevConnector?ssl=true&replicaSet=atlas-14icwk-shard-0&authSource=admin&retryWrites=true&w=majority",
+    "jwtSecret": "my-secret-token",
+    "githubclientid": "334a9c2661e0e5d90207",
+    "githubsecret": "72c1bf12883475d27eba8354d833441a37227180"
+  }
+  
