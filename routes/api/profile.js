@@ -31,7 +31,7 @@ router.get("/me", auth, async (req, res) => {
     if (!userProfile) {
       return res.status(400).json({ msg: "There is no profile for this user" });
     }
-    console.log(userProfile);
+    // console.log(userProfile);
     res.json(userProfile);
   } catch (err) {
     console.error(err.message);
@@ -57,10 +57,6 @@ router.post(
       return res.status(400).json({ error: errors.array() });
     }
 
-    let promise = new Promise((resolve, reject) => {
-      setTimeout(() => resolve("done!"), 3000);
-    });
-
     const {
       company,
       website,
@@ -76,7 +72,7 @@ router.post(
       instagram,
       linkedin,
     } = req.body;
-
+    console.log(skills);
     // Build profile objects
     const profileFields = {};
 
@@ -88,6 +84,7 @@ router.post(
     if (status) profileFields.status = status;
     if (githubusername) profileFields.githubusername = githubusername;
     if (skills) {
+      console.log(skills);
       profileFields.skills = skills.split(",").map((skill) => skill.trim());
     }
 

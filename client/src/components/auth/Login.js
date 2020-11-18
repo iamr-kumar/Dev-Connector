@@ -56,7 +56,7 @@ const Login = ({ login, setAlert, isAuthenticated }) => {
                     <input
                         type="submit"
                         className="btn btn-primary"
-                        value="Register"
+                        value="Log In"
                     />
                 </form>
                 <p className="my-1">
