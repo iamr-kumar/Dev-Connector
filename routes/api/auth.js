@@ -5,6 +5,9 @@ const auth = require("../../middleware/auth");
 const User = require("../../models/User");
 const jwt = require("jsonwebtoken");
 const config = require("config");
+const Token = require("./../../models/Token");
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 const { check, validationResult } = require("express-validator");
 
 // @route GET api/auth
@@ -58,6 +61,13 @@ router.post(
                     .json({ errors: [{ msg: "Invalid credentials" }] });
             }
 
+            // Check if the user is verified
+            if (!user.isVerified) {
+                return res.status(400).json({
+                    errors: [{ msg: "Not verified" }],
+                });
+            }
+
             const payload = {
                 user: {
                     id: user.id,
@@ -83,5 +93,42 @@ router.post(
         }
     }
 );
+
+router.get("/verifyemail", auth, async (req, res) => {
+    if (!req.user) {
+        return res.status(404).json({ errors: [{ msg: "No user found!" }] });
+    }
+    try {
+        // Generate a new token
+        const token = new Token({
+            userId: req.user._id,
+            token: crypto.randomBytes(16).toString("hex"),
+        });
+
+        // Save the token
+        await token.save();
+
+        // Send the email
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: config.get("nodemailer-email"),
+                pass: config.get("nodemailer-password"),
+            },
+        });
+        const mailOptions = {
+            from: config.get("nodemailer-email"),
+            to: req.user.email,
+            subject: "Verify your Dev Connector account",
+            text:
+                "Hello,\n\n" +
+                "Please verify your account by clicking the link: \nhttp://" +
+                req.headers.host +
+                "/confirmation/" +
+                token.token +
+                ".\n",
+        };
+    } catch (err) {}
+});
 
 module.exports = router;
