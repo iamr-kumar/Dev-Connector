@@ -61,13 +61,6 @@ router.post(
                     .json({ errors: [{ msg: "Invalid credentials" }] });
             }
 
-            // Check if the user is verified
-            if (!user.isVerified) {
-                return res.status(400).json({
-                    errors: [{ msg: "Not verified" }],
-                });
-            }
-
             const payload = {
                 user: {
                     id: user.id,
@@ -94,21 +87,25 @@ router.post(
     }
 );
 
+// @route GET api/auth/verifyemail
+// @desc Send verification email to users
+// @access Private
 router.get("/verifyemail", auth, async (req, res) => {
     if (!req.user) {
         return res.status(404).json({ errors: [{ msg: "No user found!" }] });
     }
     try {
         // Generate a new token
+        const user = await User.findById(req.user.id);
         const token = new Token({
-            userId: req.user._id,
+            userId: user._id,
             token: crypto.randomBytes(16).toString("hex"),
         });
-
+        console.log(token);
         // Save the token
         await token.save();
 
-        // Send the email
+        // // Send the email
         const transporter = nodemailer.createTransport({
             service: "gmail",
             auth: {
@@ -118,17 +115,57 @@ router.get("/verifyemail", auth, async (req, res) => {
         });
         const mailOptions = {
             from: config.get("nodemailer-email"),
-            to: req.user.email,
+            to: user.email,
             subject: "Verify your Dev Connector account",
             text:
                 "Hello,\n\n" +
                 "Please verify your account by clicking the link: \nhttp://" +
                 req.headers.host +
-                "/confirmation/" +
+                "/api/auth/confirmation/" +
                 token.token +
                 ".\n",
         };
-    } catch (err) {}
+
+        await transporter.sendMail(mailOptions);
+        res.status(200).send(token);
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send(err);
+    }
+});
+
+// @route GET api/auth/confirmation/:token
+// @desc Verify token and email of users
+// @access Private
+router.get("/confirmation/:token", async (req, res) => {
+    try {
+        const token = await Token.findOne({ token: req.params.token });
+
+        if (!token) {
+            return res.status(404).send({
+                msg: "Token was not found. It may have expired. Try again!",
+            });
+        }
+
+        const user = await User.findById(token.userId);
+        if (!user) {
+            return res
+                .status(404)
+                .send({ msg: "No user found for this token!" });
+        }
+        if (user.isVerified) {
+            return res
+                .status(400)
+                .send({ msg: "Your account has already been verified!" });
+        }
+        user.isVerified = true;
+        await user.save();
+        await Token.deleteOne({ token });
+        res.status(200).json({ msg: "Your account is successfully verified!" });
+    } catch (err) {
+        console.log(err);
+        res.status(500).send("Server error!");
+    }
 });
 
 module.exports = router;
