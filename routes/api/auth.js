@@ -101,7 +101,7 @@ router.get("/verifyemail", auth, async (req, res) => {
             userId: user._id,
             token: crypto.randomBytes(16).toString("hex"),
         });
-        console.log(token);
+        // console.log(token);
         // Save the token
         await token.save();
 
@@ -117,13 +117,8 @@ router.get("/verifyemail", auth, async (req, res) => {
             from: config.get("nodemailer-email"),
             to: user.email,
             subject: "Verify your Dev Connector account",
-            text:
-                "Hello,\n\n" +
-                "Please verify your account by clicking the link: \nhttp://" +
-                req.headers.host +
-                "/api/auth/confirmation/" +
-                token.token +
-                ".\n",
+            text: `Hello ${user.name}, click on this link to activate your account.\n http://localhost:3000/verifytoken/${token.token}`,
+            html: `Hello <strong>${user.name}</strong>, <br><br>Click on the below link to activate your Dev Connector account <br> http://localhost:3000/verifytoken/${token.token}`,
         };
 
         await transporter.sendMail(mailOptions);
