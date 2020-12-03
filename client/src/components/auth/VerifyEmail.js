@@ -5,7 +5,7 @@ import { Redirect } from "react-router-dom";
 import axios from "axios";
 import Spinner from "./../layout/Spinner";
 
-const VerifyEmail = ({ auth: { isAuthenticated } }) => {
+const VerifyEmail = ({ auth: { isAuthenticated, isVerified } }) => {
     const [genToken, sendEmail] = useState({
         sentEmail: false,
         loading: false,
@@ -36,6 +36,8 @@ const VerifyEmail = ({ auth: { isAuthenticated } }) => {
 
     if (loading) {
         return <Spinner />;
+    } else if (isVerified) {
+        return <Redirect to="/dashboard" />;
     } else if (!sentEmail && !loading) {
         // console.log(sentEmail);
         return (

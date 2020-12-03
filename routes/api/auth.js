@@ -137,7 +137,7 @@ router.get("/confirmation/:token", async (req, res) => {
         const token = await Token.findOne({ token: req.params.token });
 
         if (!token) {
-            return res.status(404).send({
+            return res.status(404).json({
                 msg: "Token was not found. It may have expired. Try again!",
             });
         }
@@ -146,16 +146,16 @@ router.get("/confirmation/:token", async (req, res) => {
         if (!user) {
             return res
                 .status(404)
-                .send({ msg: "No user found for this token!" });
+                .json({ msg: "No user found for this token!" });
         }
         if (user.isVerified) {
             return res
                 .status(400)
-                .send({ msg: "Your account has already been verified!" });
+                .json({ msg: "Your account has already been verified!" });
         }
         user.isVerified = true;
         await user.save();
-        await Token.deleteOne({ token });
+        await Token.findByIdAndDelete(token._id);
         res.status(200).json({ msg: "Your account is successfully verified!" });
     } catch (err) {
         console.log(err);

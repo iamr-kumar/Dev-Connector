@@ -10,6 +10,7 @@ import {
     AUTH_ERROR,
     LOGOUT,
     CLEAR_PROFILE,
+    TOKEN_VERIFIED,
 } from "./types";
 
 // Load user
@@ -88,6 +89,20 @@ export const login = (email, password) => async (dispatch) => {
         dispatch({
             type: LOGIN_FAIL,
         });
+    }
+};
+
+// Verify token
+export const verifyToken = (token) => async (dispatch) => {
+    try {
+        const res = await axios.get(`/api/auth/confirmation/${token}`);
+        dispatch({
+            type: TOKEN_VERIFIED,
+        });
+        dispatch(setAlert(res.data.msg, "success"));
+    } catch (err) {
+        const error = err.response.data;
+        dispatch(setAlert(error.msg, "danger"));
     }
 };
 

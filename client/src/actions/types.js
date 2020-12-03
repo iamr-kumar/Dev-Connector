@@ -4,8 +4,7 @@ export const REMOVE_ALERT = "REMOVE_ALERT";
 
 export const REGISTER_SUCCESS = "REGISTER_SUCCESS";
 export const REGISTER_FAIL = "REGISTER_FAIL";
-export const EMAIL_SENT = "EMAIL_SENT";
-export const VERIFY_TOKEN = "VERIFY_TOKEN";
+export const TOKEN_VERIFIED = "TOKEN_VERIFIED";
 
 export const USER_LOADED = "USER_LOADED";
 export const AUTH_ERROR = "AUTH_ERROR";
