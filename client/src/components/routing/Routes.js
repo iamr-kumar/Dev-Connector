@@ -16,6 +16,8 @@ import NotFound from "../layout/NotFound";
 import PrivateRoute from "../routing/PrivateRoute";
 import VerifyEmail from "../auth/VerifyEmail";
 import VerifyToken from "../auth/VerifyToken";
+import ForgotPassword from "../auth/ForgotPassword";
+import ChangePassword from "../auth/ChangePassword";
 
 const Routes = () => {
     return (
@@ -29,6 +31,16 @@ const Routes = () => {
 
                 <Route exact path="/verifyemail" component={VerifyEmail} />
                 <Route exact path="/verifytoken/:id" component={VerifyToken} />
+                <Route
+                    exact
+                    path="/forgotpassword"
+                    component={ForgotPassword}
+                />
+                <Route
+                    exact
+                    path="/resetpassword/:id"
+                    component={ChangePassword}
+                />
                 <PrivateRoute exact path="/dashboard" component={Dashboard} />
                 <PrivateRoute
                     exact

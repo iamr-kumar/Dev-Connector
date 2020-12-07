@@ -114,11 +114,11 @@ router.get("/verifyemail", auth, async (req, res) => {
             },
         });
         const mailOptions = {
-            from: config.get("nodemailer-email"),
+            from: "no-reply@devconnector.com",
             to: user.email,
             subject: "Verify your Dev Connector account",
             text: `Hello ${user.name}, click on this link to activate your account.\n http://localhost:3000/verifytoken/${token.token}`,
-            html: `Hello <strong>${user.name}</strong>, <br><br>Click on the below link to activate your Dev Connector account <br> http://localhost:3000/verifytoken/${token.token}`,
+            html: `Hello <strong>${user.name}</strong>, <br><br>Click on this <a href="http://localhost:3000/verifytoken/${token.token}">link</a> to activate your Dev Connector account <br>`,
         };
 
         await transporter.sendMail(mailOptions);
@@ -162,5 +162,118 @@ router.get("/confirmation/:token", async (req, res) => {
         res.status(500).send("Server error!");
     }
 });
+
+// Forgot password
+router.post(
+    "/forgot-password",
+    [check("email", "Enter a valid email address").isEmail()],
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                errors: errors.array(),
+            });
+        }
+        const email = req.body.email;
+        try {
+            const user = await User.findOne({ email });
+            if (!user) {
+                return res
+                    .status(400)
+                    .json({ msg: "User with this email does not exist" });
+            }
+            const token = new Token({
+                userId: user._id,
+                token: crypto.randomBytes(16).toString("hex"),
+            });
+            // console.log(token);
+            // Save the token
+            await token.save();
+
+            // // Send the email
+            const transporter = nodemailer.createTransport({
+                service: "gmail",
+                auth: {
+                    user: config.get("nodemailer-email"),
+                    pass: config.get("nodemailer-password"),
+                },
+            });
+            const mailOptions = {
+                from: "no-reply@devconnector.com",
+                to: user.email,
+                subject: "Change your DevConnector password",
+                text: `Hello ${user.name}, click on this link to reset your password.\n http://localhost:3000/change-password/${token.token}`,
+                html: `Hello <strong>${user.name}</strong>, <br><br>Click on the this <a href="http://localhost:3000/resetpassword/${token.token}">link</a> link to reset your Dev Connector password.`,
+            };
+
+            await transporter.sendMail(mailOptions);
+            res.status(200).send(token);
+        } catch (err) {}
+    }
+);
+
+router.get("/verifytoken/:token", async (req, res) => {
+    try {
+        const token = await Token.findOne({ token: req.params.token });
+
+        if (!token) {
+            return res.status(404).json({
+                msg: "This link has expired. Try again.",
+            });
+        }
+
+        const user = await User.findById(token.userId);
+        if (!user) {
+            return res
+                .status(404)
+                .json({ msg: "No user found for this email!" });
+        }
+        // await Token.findByIdAndDelete(token._id);
+        res.status(200).json({ msg: "Token verified" });
+    } catch (err) {
+        console.log(err);
+        res.status(500).send("Server error!");
+    }
+});
+
+router.post(
+    "/change-password",
+    [
+        check("password", "password is required").exists(),
+        check(
+            "password",
+            "Password length must be atleast 6 characters!"
+        ).isLength({ min: 6 }),
+    ],
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                errors: errors.array(),
+            });
+        }
+        try {
+            const token = await Token.findOne({ token: req.body.id });
+            if (!token) {
+                return res.status(404).json({
+                    msg: "This link has expired. Try again.",
+                });
+            }
+            const user = await User.findById(token.userId);
+            const password = req.body.password;
+            const salt = await bcrypt.genSalt(10);
+
+            user.password = await bcrypt.hash(password, salt);
+            await user.save();
+            await Token.findByIdAndDelete(token._id);
+            res.status(200).json({
+                msg: "Password successfully changed. Go back to login",
+            });
+        } catch (err) {
+            console.log(err);
+            res.status(500).send("Server error!");
+        }
+    }
+);
 
 module.exports = router;
