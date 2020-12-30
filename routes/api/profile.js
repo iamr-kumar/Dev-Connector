@@ -63,10 +63,6 @@ router.post(
             return res.status(400).json({ error: errors.array() });
         }
 
-        let promise = new Promise((resolve, reject) => {
-            setTimeout(() => resolve("done!"), 3000);
-        });
-
         const {
             company,
             website,
