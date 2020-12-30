@@ -1,4 +1,4 @@
-import{
+import {
     REGISTER_SUCCESS,
     REGISTER_FAIL,
     USER_LOADED,
@@ -6,36 +6,39 @@ import{
     LOGIN_SUCCESS,
     LOGIN_FAIL,
     LOGOUT,
-    ACCOUNT_DELETED
-} from '../actions/types';
+    ACCOUNT_DELETED,
+    TOKEN_VERIFIED,
+} from "../actions/types";
 
-const initialState={
-    token: localStorage.getItem('token'),
-    isAuthenticated:null,
+const initialState = {
+    token: localStorage.getItem("token"),
+    isAuthenticated: null,
+    isVerified: false,
     loading: true,
-    user:null,
-}
+    user: null,
+};
 
-export default function(state=initialState ,action){
-    const {type,payload}=action;
+export default function (state = initialState, action) {
+    const { type, payload } = action;
 
-    switch(type){
+    switch (type) {
         case USER_LOADED:
-            return{
+            return {
                 ...state,
-                isAuthenticated:true,
-                loading:false,
-                user:payload
+                isAuthenticated: true,
+                isVerified: payload.isVerified,
+                loading: false,
+                user: payload,
             };
-        
+
         case REGISTER_SUCCESS:
         case LOGIN_SUCCESS:
-            localStorage.setItem('token',payload.token);
-            return{
+            localStorage.setItem("token", payload.token);
+            return {
                 ...state,
                 ...payload,
-                isAuthenticated:true,
-                loading:false
+                isAuthenticated: true,
+                loading: false,
             };
 
         case REGISTER_FAIL:
@@ -43,14 +46,22 @@ export default function(state=initialState ,action){
         case LOGIN_FAIL:
         case LOGOUT:
         case ACCOUNT_DELETED:
-            localStorage.removeItem('token');
-            return{
+            localStorage.removeItem("token");
+            return {
                 ...state,
-                token:null,
-                isAuthenticated:false,
-                loading:false //done loading
-            }
-        default: return state;
+                token: null,
+                isAuthenticated: false,
+                loading: false, //done loading
+            };
 
+        case TOKEN_VERIFIED:
+            return {
+                ...state,
+                isVerified: true,
+                loading: false,
+            };
+        default:
+            return state;
     }
 }
+
